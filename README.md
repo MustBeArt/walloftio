@@ -78,6 +78,11 @@ We then put that private interpreter in the shebang line at the top of
 	sudo pip install nfcpy subprocess32 wiringpi2
 ```
 
+In addition, you'll need to have the font *Droid Sans Mono* installed
+in one of the usual locations for fonts, such as ~/.fonts. A zip file
+of this font is included. Unzip it and move the `.ttf` file to a fonts
+directory.
+
 Everything else needed was already included in the NOOBS install of
 Raspbian. Note that this includes some dependencies that are only
 needed if NFC is used as in the Wall of JoCo.
