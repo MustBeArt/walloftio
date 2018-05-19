@@ -39,6 +39,7 @@ wait_factor = 50
 # to hosts on the network, just from the local machine.
 termaddr = ("localhost", 9999)
 
+BADGE_TYPE_TRANSIO = 0x0858
 BADGE_TYPE_JOCO = 0x0b25
 BADGE_TYPE_ANDNXOR = 0x049e
 
@@ -265,7 +266,7 @@ class BadgeDisplay (SmoothScroller):
             ident = b[BADGE_ID]
             name = b[BADGE_NAME]
             typ = b[BADGE_TYPE]
-            if typ == BADGE_TYPE_JOCO:
+            if typ == BADGE_TYPE_JOCO or typ == BADGE_TYPE_TRANSIO:
                 if b[BADGE_CSCORE] >= 1000:
                     score = "%2d,%03d" % (b[BADGE_CSCORE]/1000, b[BADGE_CSCORE] % 1000)
                 else:
@@ -386,7 +387,7 @@ root.overrideredirect(False)
 root.attributes("-fullscreen", True)
 root.configure(background=bgcolor)
 
-heading = Label(root, text="Trans-Ionospheric", bg=bgcolor, font=("Droid Sans Mono", 110))
+heading = Label(root, text="Trans-Ionospheric", bg=bgcolor, font=("Droid Sans Mono", 100))
 heading.place(x=margin, y=margin-40, anchor=NW)
 credit = Label(root, text="Brought to you by Phase4Ground with thanks to AND!XOR",
                fg="#888888", bg=bgcolor, font=("Droid Sans Mono", 9))
@@ -398,7 +399,7 @@ names_label.place(x=margin+1085+margin, y=265, anchor=NW)
 live_label = Label(root, text="Intercepts", bg=bgcolor, font=("Droid Sans Mono", 44))
 live_label.place(x=margin+912+margin+435+margin, y=460, anchor=NW)
 
-img = ImageTk.PhotoImage(Image.open("badge_photo.png").convert("RGBA"))
+img = ImageTk.PhotoImage(Image.open("walloftio.png").convert("RGBA"))
 photo_panel = Label(root, image=img, borderwidth=0, bg=bgcolor)
 photo_panel.place(x=screenw-margin/2, y=margin/2, anchor=NE)
 
@@ -450,7 +451,7 @@ def badgeParse(data):
             badge_year = "%02X%d" % (packet_payload[0], packet_payload[1])
         elif packet_type == 0xFF:   # Manufacturer Specific Data
             badge_type = (packet_payload[1] << 8) + packet_payload[0]
-            if badge_type == BADGE_TYPE_JOCO:
+            if badge_type == BADGE_TYPE_JOCO or badge_type == BADGE_TYPE_TRANSIO:
                 badge_id = "%02X%02X" % (packet_payload[3], packet_payload[2])
                 badge_claimed_score = (packet_payload[4] << 8) + packet_payload[5]
                 badge_claimed_trinket = badge_claimed_score & 0x8000
