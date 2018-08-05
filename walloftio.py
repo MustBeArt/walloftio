@@ -30,7 +30,6 @@ from PIL import ImageTk, Image
 from collections import deque
 import threading
 import gatt
-import joco_crypto
 import random
 
 wait_factor = 50
