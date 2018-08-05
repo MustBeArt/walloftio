@@ -38,7 +38,8 @@ wait_factor = 50
 # to hosts on the network, just from the local machine.
 termaddr = ("localhost", 9999)
 
-BADGE_TYPE_TRANSIO = 0x0858
+BADGE_TYPE_TRANSIO = 0x064a
+BADGE_TYPE_TRANSIO_TMP = 0x0858
 BADGE_TYPE_JOCO = 0x0b25
 BADGE_TYPE_ANDNXOR = 0x049e
 
@@ -265,7 +266,7 @@ class BadgeDisplay (SmoothScroller):
             ident = b[BADGE_ID]
             name = b[BADGE_NAME]
             typ = b[BADGE_TYPE]
-            if typ == BADGE_TYPE_JOCO or typ == BADGE_TYPE_TRANSIO:
+            if typ == BADGE_TYPE_JOCO or typ == BADGE_TYPE_TRANSIO_TMP:
                 if b[BADGE_CSCORE] >= 1000:
                     score = "%2d,%03d" % (b[BADGE_CSCORE]/1000, b[BADGE_CSCORE] % 1000)
                 else:
@@ -436,6 +437,7 @@ def badgeParse(data):
     index = 14
     badge = False
     badge_name = None
+    dc26 = False
     while (index < len(data)-1):
         packet_len = data[index]
         packet_type = data[index+1]
@@ -445,19 +447,30 @@ def badgeParse(data):
             if int(packet_payload[0]) != 0x06:
                 badge = False
         elif packet_type == 0x09:   # Local Name
-            badge_name = packet_payload.decode("utf-8").upper()
+            badge_name = packet_payload.decode("utf-8")
         elif packet_type == 0x19:   # Appearance
             badge_year = "%02X%d" % (packet_payload[0], packet_payload[1])
+            if packet_payload[1] == 0x26:
+                dc26 = True
         elif packet_type == 0xFF:   # Manufacturer Specific Data
             badge_type = (packet_payload[1] << 8) + packet_payload[0]
-            if badge_type == BADGE_TYPE_JOCO or badge_type == BADGE_TYPE_TRANSIO:
+            if badge_type == BADGE_TYPE_JOCO or badge_type == BADGE_TYPE_TRANSIO_TMP:
                 badge_id = "%02X%02X" % (packet_payload[3], packet_payload[2])
                 badge_claimed_score = (packet_payload[4] << 8) + packet_payload[5]
                 badge_claimed_trinket = badge_claimed_score & 0x8000
                 badge_claimed_score = badge_claimed_score & 0x7FFF
                 badge = True
+            elif badge_type == BADGE_TYPE_TRANSIO:
+                badge_id = "%02X%02X" % (packet_payload[4], packet_payload[3])
+                badge_claimed_trinket = 0
+                badge_claimed_score = 99990 # so it always sorts to the top
+                badge = True
             elif badge_type == BADGE_TYPE_ANDNXOR:
-                badge_id = "%02X%02X" % (packet_payload[3], packet_payload[2])
+                if dc26:
+                    badge_id_offset = 3
+                else:
+                    badge_id_offset = 2
+                badge_id = "%02X%02X" % (packet_payload[badge_id_offset+1], packet_payload[badge_id_offset])
                 badge_claimed_trinket = 0
                 badge_claimed_score = -1   # so it always sorts below JoCo badges
                 badge = True
