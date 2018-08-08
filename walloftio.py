@@ -266,7 +266,7 @@ class BadgeDisplay (SmoothScroller):
             ident = b[BADGE_ID]
             name = b[BADGE_NAME]
             typ = b[BADGE_TYPE]
-            if typ == BADGE_TYPE_JOCO or typ == BADGE_TYPE_TRANSIO_TMP:
+            if typ == BADGE_TYPE_JOCO or typ == BADGE_TYPE_TRANSIO_TMP or typ == BADGE_TYPE_TRANSIO:
                 if b[BADGE_CSCORE] >= 1000:
                     score = "%2d,%03d" % (b[BADGE_CSCORE]/1000, b[BADGE_CSCORE] % 1000)
                 else:
@@ -463,7 +463,7 @@ def badgeParse(data):
             elif badge_type == BADGE_TYPE_TRANSIO:
                 badge_id = "%02X%02X" % (packet_payload[4], packet_payload[3])
                 badge_claimed_trinket = 0
-                badge_claimed_score = 99990 # so it always sorts to the top
+                badge_claimed_score = (packet_payload[6] << 8) + packet_payload[7]
                 badge = True
             elif badge_type == BADGE_TYPE_ANDNXOR:
                 if dc26:
