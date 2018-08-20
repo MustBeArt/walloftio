@@ -448,10 +448,15 @@ def badgeParse(data):
                 badge = False
         elif packet_type == 0x09:   # Local Name
             badge_name = packet_payload.decode("utf-8")
+            badge_name = badge_name[0:8]
         elif packet_type == 0x19:   # Appearance
             badge_year = "%02X%d" % (packet_payload[0], packet_payload[1])
             if packet_payload[1] == 0x26:
                 dc26 = True
+            elif packet_payload[1] == 0x19:
+                dc26 = False
+            else:
+                badge_year = None
         elif packet_type == 0xFF:   # Manufacturer Specific Data
             badge_type = (packet_payload[1] << 8) + packet_payload[0]
             if badge_type == BADGE_TYPE_JOCO or badge_type == BADGE_TYPE_TRANSIO_TMP:
@@ -475,7 +480,11 @@ def badgeParse(data):
                 badge_claimed_score = -1   # so it always sorts below JoCo badges
                 badge = True
             else:
-                badge = False
+                badge_id = "????"
+                badge_claimed_trinket = 0
+                badge_claimed_score = -2
+                badge_year = "DCxx"
+                badge = True
 
     if badge and badge_name is not None and badge_year is not None:
         return {BADGE_ADDR:   badge_address,
